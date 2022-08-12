@@ -1,0 +1,78 @@
+%%[
+var @subscriberkey, @GAUid, @GAUamount, @GAUfrequency, @GAUamount2
+set @subscriberkey = AttributeValue('Opportunity:npsp__Primary_Contact__r:Id')
+
+/* Getting the information about the Allocation for the Opp */
+IF NOT EMPTY(@subscriberkey) THEN
+ set @rs = RetrieveSalesforceObjects(
+  "npsp__Allocation__c", 
+   "npsp__General_Accounting_Unit__c,npsp__Amount__c,cfg_Frequency__c", 
+   "npsp__Opportunity__c", "=", Opportunity:Id)
+ set @rowCount = rowcount(@rs)
+]%%
+/* Creating the table and populating the content BEFORE the looped information */
+<table bgcolor="#ffffff" border="0" cellpadding="0" cellspacing="0" class="responsive-table" role="presentation" style="max-width: 600px;" width="100%">
+ 
+  <tr>
+   <td align="left" class="padding">
+    <p style="display: block; font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px;">
+     <b>Transaction Details</b><br>
+     <br>
+     Gift total: %%=v(@amount)=%%<br>
+     Supporting: 
+
+%%[
+/* Starting the counter information */
+ IF @rowCount > 0 THEN
+  For @counter = 1 to @RowCount do
+    set @row = row(@rs,@counter)
+    set @GAUid = field(@row,"npsp__General_Accounting_Unit__c")
+    set @GAUamount = field(@row,"npsp__Amount__c")
+    set @GAUfrequency = field(@row,"cfg_Frequency__c")
+    set @GAUamount2 = FormatCurrency(@GAUamount, "en-us")
+
+     /* Pulling in the GAU Name */
+
+    set @GAUallocationName = RetrieveSalesforceObjects(
+     "npsp__General_Accounting_Unit__c",
+     "Name",
+     "Id","=",@GAUid)
+
+    set @rowCountGAUallocationName = rowcount(@GAUallocationName)
+
+    if rowcount(@GAUallocationName) > 0 then
+     set @row = row(@GAUallocationName,1)
+     set @GAUname = field(@row,"Name")
+    ELSE
+     set @GAUname = ""
+    ENDIF
+
+    ]%%
+/* Displaying the looped information */ 
+     %%=v(@GAUname)=%% (%%=v(@GAUamount2)=%%, %%=v(@GAUfrequency)=%%)<br>
+     
+   %%[ 
+
+  Next @counter 
+
+  ENDIF 
+  /* End of allocation rowcount */
+  ]%%
+  
+  /* Displaying the remainder of the confirmation information */        
+  Date: %%=v(@OrderDate)=%%<br>
+  Reference number: %%Opportunity:cfg_Cybersource_Authorization_Code__c%%</p><p></p>
+     <p class="mobile_font_22" style="display: block; font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px;">
+     <i>Please note that this confirmation is not a tax receipt. A receipt will soon be mailed to you. Please visit our <a alias="tax information page" conversion="false" data-linkto="https://" href="https://give.myiu.org/tax-and-legal-information" style="color:#006298;text-decoration:none;" title="tax information page">tax information page</a> to learn more about the potential tax benefits of giving to Indiana University.</i></p>
+   </td></tr></table>
+   
+%%[
+ELSE 
+/* Subscriber Key Else */
+]%%
+
+  Something went wrong.
+
+%%[
+ENDIF
+]%%
