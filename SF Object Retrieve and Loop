@@ -31,7 +31,7 @@ IF NOT EMPTY(@subscriberkey) THEN
     set @GAUfrequency = field(@row,"cfg_Frequency__c")
     set @GAUamount2 = FormatCurrency(@GAUamount, "en-us")
 
-     /* Pulling in the GAU Name */
+     /* Pulling in the GAU Name using the GAUid from above */
 
     set @GAUallocationName = RetrieveSalesforceObjects(
      "npsp__General_Accounting_Unit__c",
